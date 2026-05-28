@@ -1,0 +1,1663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<title>無料AI顔交換</title>
+<style>
+:root {
+  --bg: #0a0b0e;
+  --bg-soft: #11141a;
+  --panel: #161a22;
+  --panel-2: #1c2029;
+  --border: #252a36;
+  --border-strong: #353b4a;
+  --text: #e6e9ef;
+  --text-dim: #9098a8;
+  --text-faint: #5d6577;
+  --accent: #28e0b0;
+  --accent-2: #3aebbc;
+  --accent-soft: rgba(40, 224, 176, 0.14);
+  --warn: #ffb453;
+  --error: #ff5e5e;
+  --success: #28e0b0;
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Hiragino Sans", "Yu Gothic Medium", "Meiryo", system-ui, sans-serif;
+  font-size: 14px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.mono { font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.app { height: 100vh; display: flex; flex-direction: column; }
+header {
+  padding: 14px 22px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-soft); flex-shrink: 0; gap: 12px;
+}
+.logo { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.logo-mark {
+  width: 30px; height: 30px;
+  background: linear-gradient(135deg, var(--accent) 0%, #2b9be0 100%);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  color: #07120e; font-weight: 800; font-size: 13px; letter-spacing: -0.02em;
+  box-shadow: 0 2px 8px rgba(40, 224, 176, 0.25);
+}
+.title { font-size: 15px; font-weight: 600; letter-spacing: 0.01em; white-space: nowrap; }
+.badge {
+  font-size: 10px; padding: 2px 7px;
+  background: var(--accent-soft); color: var(--accent);
+  border-radius: 4px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600;
+}
+.status-pill {
+  padding: 5px 11px; border-radius: 100px;
+  background: var(--panel); border: 1px solid var(--border);
+  font-size: 12px; display: flex; align-items: center; gap: 7px; flex-shrink: 0;
+}
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
+.status-dot.ready { background: var(--success); box-shadow: 0 0 8px var(--success); }
+.status-dot.init { background: var(--warn); animation: pulse 1.2s infinite; }
+.status-dot.processing { background: var(--accent); animation: pulse 0.8s infinite; }
+.status-dot.error { background: var(--error); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+main {
+  flex: 1; display: grid;
+  grid-template-columns: 360px 1fr;
+  overflow: hidden; min-height: 0;
+}
+.controls-panel {
+  background: var(--bg-soft); border-right: 1px solid var(--border);
+  padding: 18px; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.section { display: flex; flex-direction: column; gap: 10px; }
+.section-title {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+  color: var(--text-dim); font-weight: 700;
+}
+.file-drop {
+  background: var(--panel); border: 1px dashed var(--border-strong);
+  border-radius: var(--radius); padding: 12px;
+  display: flex; align-items: center; gap: 12px;
+  transition: all 0.18s; cursor: pointer; position: relative; overflow: hidden;
+}
+.file-drop:hover { border-color: var(--accent); background: var(--panel-2); }
+.file-drop.loaded { border-style: solid; border-color: var(--border); }
+.file-drop input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 2; }
+.thumb {
+  width: 54px; height: 54px; border-radius: var(--radius-sm);
+  background: var(--bg); flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; position: relative;
+}
+.thumb img, .thumb canvas, .thumb video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb-empty { font-size: 22px; color: var(--text-faint); }
+.file-info { flex: 1; min-width: 0; }
+.file-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.file-meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+.tag {
+  font-size: 10px; padding: 1px 6px; border-radius: 3px;
+  display: inline-block; margin-top: 3px;
+  font-weight: 600; letter-spacing: 0.03em;
+}
+.tag.ok { background: var(--accent-soft); color: var(--accent); }
+.tag.fail { background: rgba(255, 94, 94, 0.14); color: var(--error); }
+.tag.warn { background: rgba(255, 180, 83, 0.14); color: var(--warn); }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+label {
+  font-size: 11px; color: var(--text-dim);
+  display: flex; justify-content: space-between; align-items: center;
+}
+select, input[type=number], input[type=text] {
+  background: var(--panel); border: 1px solid var(--border);
+  color: var(--text); padding: 8px 10px;
+  border-radius: var(--radius-sm); font-size: 13px;
+  font-family: inherit; outline: none;
+  transition: border-color 0.15s; width: 100%;
+}
+select:focus, input:focus { border-color: var(--accent); }
+input[type=range] {
+  -webkit-appearance: none; appearance: none;
+  width: 100%; height: 4px; background: var(--panel-2);
+  border-radius: 100px; outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  border: 2px solid var(--bg-soft);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+input[type=range]::-moz-range-thumb {
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--accent); cursor: pointer;
+  border: 2px solid var(--bg-soft);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.slider-value { font-size: 11px; color: var(--text); }
+
+button {
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  padding: 10px 14px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--panel); color: var(--text);
+  cursor: pointer; transition: all 0.15s;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+}
+button:hover:not(:disabled) { background: var(--panel-2); border-color: var(--accent); }
+button:active:not(:disabled) { transform: translateY(1px); }
+button:disabled { opacity: 0.35; cursor: not-allowed; }
+button.primary {
+  background: var(--accent); color: #06110d;
+  border-color: var(--accent); font-weight: 700;
+}
+button.primary:hover:not(:disabled) { background: var(--accent-2); border-color: var(--accent-2); }
+button.danger { color: var(--error); border-color: rgba(255, 94, 94, 0.3); }
+button.danger:hover:not(:disabled) { background: rgba(255, 94, 94, 0.1); border-color: var(--error); }
+
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.btn-row .full { grid-column: 1 / -1; }
+
+.preview-panel {
+  background: var(--bg); padding: 18px;
+  display: flex; flex-direction: column; gap: 14px;
+  overflow: hidden; min-height: 0;
+}
+.canvas-wrap {
+  flex: 1;
+  background:
+    linear-gradient(45deg, #0d0f13 25%, transparent 25%),
+    linear-gradient(-45deg, #0d0f13 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #0d0f13 75%),
+    linear-gradient(-45deg, transparent 75%, #0d0f13 75%);
+  background-size: 18px 18px;
+  background-position: 0 0, 0 9px, 9px -9px, -9px 0;
+  background-color: #06080b;
+  border-radius: var(--radius); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; min-height: 0; position: relative;
+}
+#previewCanvas {
+  max-width: 100%; max-height: 100%;
+  display: block; object-fit: contain;
+}
+.canvas-empty {
+  color: var(--text-faint); font-size: 13px;
+  text-align: center; padding: 20px;
+  position: absolute; pointer-events: none;
+}
+.canvas-empty .big { font-size: 28px; opacity: 0.5; margin-bottom: 8px; }
+.canvas-empty.hidden { display: none; }
+
+.progress-block { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+.progress-info { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-dim); }
+.progress-bar {
+  height: 5px; background: var(--panel);
+  border-radius: 100px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  width: 0%; transition: width 0.18s;
+  border-radius: 100px;
+  box-shadow: 0 0 8px rgba(40, 224, 176, 0.4);
+}
+
+.log {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 8px 12px;
+  font-family: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, monospace;
+  font-size: 11px; line-height: 1.65;
+  height: 110px; overflow-y: auto;
+  color: var(--text-dim); flex-shrink: 0;
+}
+.log-line { display: flex; gap: 8px; padding: 0; }
+.log-time { color: var(--text-faint); flex-shrink: 0; }
+.log-line.info .log-msg { color: var(--text-dim); }
+.log-line.success .log-msg { color: var(--success); }
+.log-line.warn .log-msg { color: var(--warn); }
+.log-line.error .log-msg { color: var(--error); }
+
+.notice {
+  font-size: 11px; color: var(--text-faint);
+  text-align: center; padding-top: 2px; line-height: 1.6;
+}
+
+.error-modal {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; padding: 20px;
+  backdrop-filter: blur(4px);
+}
+.error-modal.hidden { display: none; }
+.error-card {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 22px;
+  max-width: 440px; width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.error-title { font-weight: 600; margin-bottom: 8px; color: var(--error); font-size: 14px; }
+.error-body { color: var(--text-dim); font-size: 13px; line-height: 1.65; white-space: pre-wrap; }
+.error-actions { margin-top: 16px; text-align: right; display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (max-width: 880px) {
+  body { overflow: auto; }
+  .app { height: auto; min-height: 100vh; }
+  main {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    overflow: visible;
+  }
+  .controls-panel {
+    border-right: none; border-top: 1px solid var(--border);
+    padding: 16px; order: 2;
+    max-height: none; overflow: visible;
+  }
+  .preview-panel { order: 1; padding: 14px; overflow: visible; }
+  .canvas-wrap { aspect-ratio: 16 / 9; min-height: 180px; }
+  .log { height: 90px; }
+  header { padding: 12px 16px; }
+  .title { font-size: 14px; }
+}
+
+.spinner {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-mark">FX</div>
+      <div class="title">無料AI顔交換</div>
+      <div class="badge">v2</div>
+    </div>
+    <div class="status-pill">
+      <div class="status-dot init" id="statusDot"></div>
+      <span id="statusText">初期化中…</span>
+    </div>
+  </header>
+
+  <main>
+    <aside class="controls-panel">
+      <div class="section">
+        <div class="section-title">1. 顔画像</div>
+        <label class="file-drop" id="srcDrop">
+          <div class="thumb" id="srcThumb"><div class="thumb-empty">👤</div></div>
+          <div class="file-info">
+            <div class="file-name" id="srcName">画像を選択</div>
+            <div class="file-meta" id="srcMeta">JPG / PNG / WebP</div>
+            <div id="srcStatus"></div>
+          </div>
+          <input type="file" id="srcInput" accept="image/*">
+        </label>
+      </div>
+
+      <div class="section">
+        <div class="section-title">2. 動画</div>
+        <label class="file-drop" id="vidDrop">
+          <div class="thumb" id="vidThumb"><div class="thumb-empty">🎬</div></div>
+          <div class="file-info">
+            <div class="file-name" id="vidName">動画を選択</div>
+            <div class="file-meta" id="vidMeta">MP4 / WebM / MOV</div>
+            <div id="vidStatus"></div>
+          </div>
+          <input type="file" id="vidInput" accept="video/*">
+        </label>
+      </div>
+
+      <div class="section">
+        <div class="section-title">3. 設定</div>
+
+        <div class="field">
+          <label for="resolutionSelect">出力幅</label>
+          <select id="resolutionSelect">
+            <option value="480">480 px</option>
+            <option value="640">640 px</option>
+            <option value="720" selected>720 px</option>
+            <option value="1080">1080 px</option>
+            <option value="orig">元動画のまま</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="intervalSelect">検出間隔</label>
+          <select id="intervalSelect">
+            <option value="0" selected>毎フレーム</option>
+            <option value="100">100 ms</option>
+            <option value="200">200 ms</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label>合成強さ <span id="strengthValue" class="slider-value mono">0.96</span></label>
+          <input type="range" id="strengthSlider" min="0" max="1" step="0.01" value="0.96">
+        </div>
+
+        <div class="field">
+          <label>顔スケール <span id="scaleValue" class="slider-value mono">1.08</span></label>
+          <input type="range" id="scaleSlider" min="0.85" max="1.30" step="0.01" value="1.08">
+        </div>
+
+        <div class="field">
+          <label>境界ぼかし <span id="featherValue" class="slider-value mono">14 px</span></label>
+          <input type="range" id="featherSlider" min="0" max="40" step="1" value="14">
+        </div>
+
+        <div class="field">
+          <label>遮蔽除去 (泡/ビール対策) <span id="occlusionValue" class="slider-value mono">0.85</span></label>
+          <input type="range" id="occlusionSlider" min="0" max="1.5" step="0.05" value="0.85">
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">4. 実行</div>
+        <div class="btn-row">
+          <button id="startBtn" class="primary full" disabled>▶ 実行</button>
+          <button id="stopBtn" disabled>■ 停止</button>
+          <button id="saveBtn" disabled>↓ 保存</button>
+        </div>
+      </div>
+
+      <div class="notice">処理はすべてブラウザ内で完結します。<br>動画と画像はサーバーへ送信されません。</div>
+    </aside>
+
+    <section class="preview-panel">
+      <div class="canvas-wrap" id="canvasWrap">
+        <canvas id="previewCanvas" width="640" height="360"></canvas>
+        <div class="canvas-empty" id="canvasEmpty">
+          <div class="big">🎭</div>
+          顔画像と動画を選択してください
+        </div>
+      </div>
+
+      <div class="progress-block">
+        <div class="progress-info">
+          <span id="progressLabel">待機中</span>
+          <span id="progressTime" class="mono">0.00 / 0.00 s</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      </div>
+
+      <div class="log" id="logBox"></div>
+    </section>
+  </main>
+</div>
+
+<div class="error-modal hidden" id="errorModal">
+  <div class="error-card">
+    <div class="error-title" id="errorTitle">エラー</div>
+    <div class="error-body" id="errorBody"></div>
+    <div class="error-actions">
+      <button id="errorCloseBtn">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delaunay 三角形分割: 軽量ライブラリ -->
+<script src="https://cdn.jsdelivr.net/npm/delaunator@5.0.1/delaunator.min.js"></script>
+
+<script type="module">
+//=====================================================================
+//  無料AI顔交換 (Free AI Face Swap) — Browser-only
+//
+//  - MediaPipe FaceLandmarker (478 landmarks) で顔検出
+//  - Delaunator で源画像顔のランドマークを三角形分割
+//  - 同じ三角形インデックスを動画側にも適用してアフィン変換ワープ
+//  - 髪を除外する内側マスク + 顔パーツ別フェザリング
+//  - 肌のみサンプリングして RGB 平均/標準偏差マッチング
+//  - フレーム間 EMA 平滑化で揺れ防止
+//  - MediaRecorder で出力動画を録画 (停止後も保存可)
+//=====================================================================
+
+import {
+  FilesetResolver,
+  FaceLandmarker
+} from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs";
+
+// === MediaPipe FaceMesh ランドマーク定数 =============================
+
+// 顔の外周(36点 / 時計回り)
+const FACE_OVAL = [
+  10, 338, 297, 332, 284, 251, 389, 356, 454, 323, 361, 288,
+  397, 365, 379, 378, 400, 377, 152, 148, 176, 149, 150, 136,
+  172, 58, 132, 93, 234, 127, 162, 21, 54, 103, 67, 109
+];
+// FACE_OVAL の中で「額に近い (=髪寄り)」インデックス
+// マスク構築時にこの位置の Y を眉ライン付近にクランプして髪を除外する
+const FOREHEAD_OVAL_IDX_SET = new Set([0, 1, 2, 3, 4, 5, 30, 31, 32, 33, 34, 35]);
+
+// 眉の最上ライン (これより上は基本的に貼らない)
+const EYEBROW_TOPS = [70, 63, 105, 66, 107, 336, 296, 334, 293, 300];
+
+// 顎中央 / 額中央
+const CHIN_IDX = 152;
+const FOREHEAD_TOP_IDX = 10;
+
+// 色サンプリング用ランドマーク (肌領域のみ。眉/目/口/髪は含めない)
+const SKIN_LANDMARKS = [
+  // 右頬
+  50, 101, 36, 205, 187, 117, 118, 119, 100, 142,
+  // 左頬
+  280, 330, 266, 425, 411, 346, 347, 348, 329, 371,
+  // 鼻
+  4, 5, 1, 19, 195, 197, 6, 168, 8,
+  // 顎中央
+  18, 175, 199, 200, 152
+];
+
+// 目 (左右の外周)
+const EYE_LEFT = [33, 7, 163, 144, 145, 153, 154, 155, 133, 173, 157, 158, 159, 160, 161, 246];
+const EYE_RIGHT = [263, 249, 390, 373, 374, 380, 381, 382, 362, 398, 384, 385, 386, 387, 388, 466];
+// 口 (外周)
+const MOUTH_OUTER = [61, 146, 91, 181, 84, 17, 314, 405, 321, 375, 291, 409, 270, 269, 267, 0, 37, 39, 40, 185];
+
+// 三角形分割対象のランドマーク (虹彩 468–477 を除く 0–467 の 468 点)
+const NUM_FACE_LANDMARKS = 468;
+
+// === DOM 参照 =======================================================
+const $ = id => document.getElementById(id);
+const els = {
+  statusDot:        $("statusDot"),
+  statusText:       $("statusText"),
+  srcInput:         $("srcInput"),
+  srcDrop:          $("srcDrop"),
+  srcThumb:         $("srcThumb"),
+  srcName:          $("srcName"),
+  srcMeta:          $("srcMeta"),
+  srcStatus:        $("srcStatus"),
+  vidInput:         $("vidInput"),
+  vidDrop:          $("vidDrop"),
+  vidThumb:         $("vidThumb"),
+  vidName:          $("vidName"),
+  vidMeta:          $("vidMeta"),
+  vidStatus:        $("vidStatus"),
+  resolutionSelect: $("resolutionSelect"),
+  intervalSelect:   $("intervalSelect"),
+  strengthSlider:   $("strengthSlider"),
+  strengthValue:    $("strengthValue"),
+  scaleSlider:      $("scaleSlider"),
+  scaleValue:       $("scaleValue"),
+  featherSlider:    $("featherSlider"),
+  featherValue:     $("featherValue"),
+  occlusionSlider:  $("occlusionSlider"),
+  occlusionValue:   $("occlusionValue"),
+  startBtn:         $("startBtn"),
+  stopBtn:          $("stopBtn"),
+  saveBtn:          $("saveBtn"),
+  previewCanvas:    $("previewCanvas"),
+  canvasEmpty:      $("canvasEmpty"),
+  progressLabel:    $("progressLabel"),
+  progressTime:     $("progressTime"),
+  progressFill:     $("progressFill"),
+  logBox:           $("logBox"),
+  errorModal:       $("errorModal"),
+  errorTitle:       $("errorTitle"),
+  errorBody:        $("errorBody"),
+  errorCloseBtn:    $("errorCloseBtn")
+};
+
+// === 状態 ===========================================================
+const state = {
+  faceLandmarker: null,
+  currentMode: null,            // "IMAGE" | "VIDEO"
+  source: null,                 // { canvas, w, h, landmarks, triangles, stats, normLandmarks }
+  source_objectUrls: [],
+  video: null,                  // { el, url, w, h, duration }
+  videoFile: null,
+  videoObjectUrl: null,
+  processing: false,
+  stopRequested: false,
+  recorder: null,
+  recordedChunks: [],
+  recordedBlob: null,
+  recordedMime: null,
+  smoothedLm: null,
+  smoothedStats: null,
+  lastDetectTimeMs: -Infinity,
+  lastFrameVideoTime: -1,
+  rvfcHandle: null,
+  rafHandle: null,
+  outputW: 720,
+  outputH: 405,
+  lastCorrectedSrcUpdateMs: -Infinity,
+  lastTs: 0  // FaceLandmarker.detectForVideo へ渡す単調増加タイムスタンプ
+};
+
+// === キャンバス参照 ==================================================
+const outputCanvas = els.previewCanvas;
+const outputCtx = outputCanvas.getContext("2d");
+// 動画フレーム取り込み用
+const videoFrameCanvas = document.createElement("canvas");
+const videoFrameCtx = videoFrameCanvas.getContext("2d", { willReadFrequently: true });
+// 顔をワープして描画するキャンバス (出力サイズと同じ)
+const faceWarpCanvas = document.createElement("canvas");
+const faceWarpCtx = faceWarpCanvas.getContext("2d");
+// マスクキャンバス (顔オーバルの内側マスク)
+const maskCanvas = document.createElement("canvas");
+const maskCtx = maskCanvas.getContext("2d");
+// 肌確率マスク (v2: 動画の各ピクセルが肌色か判定) — 泡/ビール/手などを除外
+const skinProbCanvas = document.createElement("canvas");
+const skinProbCtx = skinProbCanvas.getContext("2d", { willReadFrequently: true });
+// 結合マスク = 顔オーバル × 肌確率
+const combinedMaskCanvas = document.createElement("canvas");
+const combinedMaskCtx = combinedMaskCanvas.getContext("2d");
+// 色補正済みソース (ソースキャンバスと同サイズ)
+const correctedSrcCanvas = document.createElement("canvas");
+const correctedSrcCtx = correctedSrcCanvas.getContext("2d", { willReadFrequently: true });
+// サムネ用
+const thumbCanvas = document.createElement("canvas");
+
+// === ユーティリティ =================================================
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+function showError(message, title = "エラー") {
+  els.errorTitle.textContent = title;
+  els.errorBody.textContent = message;
+  els.errorModal.classList.remove("hidden");
+}
+els.errorCloseBtn.addEventListener("click", () => els.errorModal.classList.add("hidden"));
+
+function log(msg, level = "info") {
+  const line = document.createElement("div");
+  line.className = `log-line ${level}`;
+  const d = new Date();
+  const t = `${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}:${String(d.getSeconds()).padStart(2,"0")}`;
+  line.innerHTML = `<span class="log-time"></span><span class="log-msg"></span>`;
+  line.querySelector(".log-time").textContent = t;
+  line.querySelector(".log-msg").textContent = msg;
+  els.logBox.appendChild(line);
+  els.logBox.scrollTop = els.logBox.scrollHeight;
+  while (els.logBox.childElementCount > 200) els.logBox.removeChild(els.logBox.firstChild);
+}
+
+function setStatus(kind, text) {
+  els.statusDot.className = "status-dot " + kind;
+  els.statusText.textContent = text;
+}
+
+function loadImageElement(url) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Image load error"));
+    img.src = url;
+  });
+}
+
+function loadVideoMetadata(url) {
+  return new Promise((resolve, reject) => {
+    const v = document.createElement("video");
+    v.preload = "auto";
+    v.muted = false;
+    v.playsInline = true;
+    v.crossOrigin = "anonymous";
+    v.onloadedmetadata = () => resolve(v);
+    v.onerror = () => reject(new Error("Video load error"));
+    v.src = url;
+  });
+}
+
+function updateButtons() {
+  const ready = state.faceLandmarker && state.source && state.video && !state.processing;
+  els.startBtn.disabled = !ready;
+  els.stopBtn.disabled = !state.processing;
+  // saveBtn は recorder の onstop で有効化される
+}
+
+// === 初期化: FaceLandmarker をロード =================================
+async function init() {
+  if (typeof MediaRecorder === "undefined") {
+    setStatus("error", "未対応");
+    showError("このブラウザは MediaRecorder API に対応していません。\n最新の Chrome / Edge / Firefox / Safari でお試しください。");
+    return;
+  }
+  if (typeof HTMLCanvasElement.prototype.captureStream !== "function") {
+    setStatus("error", "未対応");
+    showError("このブラウザは Canvas.captureStream に対応していません。\n最新の Chrome / Edge / Firefox / Safari でお試しください。");
+    return;
+  }
+  if (typeof Delaunator === "undefined") {
+    setStatus("error", "読込失敗");
+    showError("Delaunator ライブラリの読み込みに失敗しました。\nネットワーク接続を確認してください。");
+    return;
+  }
+
+  setStatus("init", "モデル読み込み中…");
+  log("FaceLandmarker モデルを読み込み中…", "info");
+
+  try {
+    const vision = await FilesetResolver.forVisionTasks(
+      "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm"
+    );
+    const opts = {
+      baseOptions: {
+        modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+        delegate: "GPU"
+      },
+      outputFaceBlendshapes: false,
+      outputFacialTransformationMatrixes: false,
+      runningMode: "IMAGE",
+      numFaces: 1
+    };
+    try {
+      state.faceLandmarker = await FaceLandmarker.createFromOptions(vision, opts);
+      log("GPU で初期化しました", "success");
+    } catch (gpuErr) {
+      log("GPU 不可。CPU で再試行: " + (gpuErr.message || gpuErr), "warn");
+      opts.baseOptions.delegate = "CPU";
+      state.faceLandmarker = await FaceLandmarker.createFromOptions(vision, opts);
+      log("CPU で初期化しました", "success");
+    }
+    state.currentMode = "IMAGE";
+    setStatus("ready", "準備完了");
+    log("素材を選択してください。", "info");
+    updateButtons();
+  } catch (err) {
+    console.error(err);
+    setStatus("error", "初期化失敗");
+    log("初期化失敗: " + (err.message || err), "error");
+    showError("AI モデルの読み込みに失敗しました。\n\n" + (err.message || err) + "\n\nネットワーク接続を確認するか、ブラウザを更新してお試しください。");
+  }
+}
+
+async function ensureMode(mode) {
+  if (state.currentMode === mode) return;
+  await state.faceLandmarker.setOptions({ runningMode: mode });
+  state.currentMode = mode;
+}
+
+// === ソース画像の読み込み ============================================
+async function loadSourceImage(file) {
+  log(`画像読み込み: ${file.name}`, "info");
+  els.srcName.textContent = file.name;
+  els.srcMeta.textContent = `${(file.size/1024).toFixed(1)} KB`;
+  els.srcStatus.innerHTML = '<span class="tag warn">検出中…</span>';
+
+  const url = URL.createObjectURL(file);
+  let img;
+  try {
+    img = await loadImageElement(url);
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    els.srcStatus.innerHTML = '<span class="tag fail">読み込み失敗</span>';
+    showError("画像の読み込みに失敗しました。形式を確認してください。");
+    return;
+  }
+
+  // 大きすぎる画像はダウンサンプル(処理速度のため)
+  const maxSide = 768;
+  let w = img.naturalWidth, h = img.naturalHeight;
+  if (Math.max(w, h) > maxSide) {
+    const s = maxSide / Math.max(w, h);
+    w = Math.round(w * s); h = Math.round(h * s);
+  }
+  const srcCanvas = document.createElement("canvas");
+  srcCanvas.width = w; srcCanvas.height = h;
+  const sCtx = srcCanvas.getContext("2d", { willReadFrequently: true });
+  sCtx.drawImage(img, 0, 0, w, h);
+
+  // サムネ表示
+  thumbCanvas.width = 108; thumbCanvas.height = 108;
+  const tCtx = thumbCanvas.getContext("2d");
+  // アスペクト維持してセンタークロップ
+  const scale = Math.max(108 / img.naturalWidth, 108 / img.naturalHeight);
+  const tw = img.naturalWidth * scale, th = img.naturalHeight * scale;
+  tCtx.drawImage(img, (108 - tw) / 2, (108 - th) / 2, tw, th);
+  els.srcThumb.innerHTML = "";
+  const thumbImg = new Image();
+  thumbImg.src = thumbCanvas.toDataURL();
+  els.srcThumb.appendChild(thumbImg);
+  els.srcDrop.classList.add("loaded");
+  URL.revokeObjectURL(url);
+
+  // 顔検出
+  await ensureMode("IMAGE");
+  let detRes;
+  try {
+    detRes = state.faceLandmarker.detect(srcCanvas);
+  } catch (e) {
+    log("画像の顔検出失敗: " + (e.message || e), "error");
+    els.srcStatus.innerHTML = '<span class="tag fail">検出失敗</span>';
+    showError("画像の顔検出に失敗しました。");
+    return;
+  }
+  if (!detRes.faceLandmarks || detRes.faceLandmarks.length === 0) {
+    els.srcStatus.innerHTML = '<span class="tag fail">顔が見つかりません</span>';
+    log("顔を検出できませんでした", "error");
+    showError("画像から顔を検出できませんでした。正面に近い、はっきり写った顔写真をお試しください。");
+    return;
+  }
+
+  const normLm = detRes.faceLandmarks[0];
+  // 画素座標へ変換 (0–467 の 468 点のみ使用)
+  const pxLm = new Array(NUM_FACE_LANDMARKS);
+  for (let i = 0; i < NUM_FACE_LANDMARKS; i++) {
+    pxLm[i] = [normLm[i].x * w, normLm[i].y * h];
+  }
+
+  // Delaunay 三角形分割
+  const coords = new Float64Array(NUM_FACE_LANDMARKS * 2);
+  for (let i = 0; i < NUM_FACE_LANDMARKS; i++) {
+    coords[i * 2]     = pxLm[i][0];
+    coords[i * 2 + 1] = pxLm[i][1];
+  }
+  const del = new Delaunator(coords);
+  const triangles = del.triangles; // Uint32Array, 3 indices ごとに 1 三角形
+
+  // 顔範囲外の不要な大きな三角形をフィルタ
+  // 顔の幅 = 234〜454 (両頬端)
+  const faceWidth = Math.abs(pxLm[454][0] - pxLm[234][0]);
+  const maxEdge = faceWidth * 0.55;
+  const filteredTri = [];
+  for (let i = 0; i < triangles.length; i += 3) {
+    const a = triangles[i], b = triangles[i+1], c = triangles[i+2];
+    const dab = Math.hypot(pxLm[a][0] - pxLm[b][0], pxLm[a][1] - pxLm[b][1]);
+    const dbc = Math.hypot(pxLm[b][0] - pxLm[c][0], pxLm[b][1] - pxLm[c][1]);
+    const dca = Math.hypot(pxLm[c][0] - pxLm[a][0], pxLm[c][1] - pxLm[a][1]);
+    if (dab > maxEdge || dbc > maxEdge || dca > maxEdge) continue;
+    filteredTri.push(a, b, c);
+  }
+  log(`三角形 ${filteredTri.length / 3} 個を生成`, "info");
+
+  // 肌色統計を計算 (ソース全体)
+  const srcImageData = sCtx.getImageData(0, 0, w, h);
+  const srcStats = computeSkinStats(srcImageData, pxLm, w, h);
+  if (!srcStats) {
+    log("肌色サンプル取得に失敗しました", "warn");
+  }
+
+  state.source = {
+    canvas: srcCanvas,
+    w, h,
+    landmarks: pxLm,
+    normLandmarks: normLm,
+    triangles: filteredTri,
+    stats: srcStats || { meanR:128, meanG:128, meanB:128, stdR:40, stdG:40, stdB:40 }
+  };
+
+  // 色補正済みソース用キャンバスをソース解像度で初期化
+  correctedSrcCanvas.width = w;
+  correctedSrcCanvas.height = h;
+  correctedSrcCtx.drawImage(srcCanvas, 0, 0);
+
+  els.srcStatus.innerHTML = '<span class="tag ok">顔を検出しました</span>';
+  log(`画像処理完了 (${w}×${h}, 三角形 ${filteredTri.length / 3} 個)`, "success");
+  updateButtons();
+}
+
+// === 動画の読み込み ==================================================
+async function loadVideo(file) {
+  log(`動画読み込み: ${file.name}`, "info");
+  els.vidName.textContent = file.name;
+  els.vidMeta.textContent = `${(file.size/1024/1024).toFixed(1)} MB`;
+  els.vidStatus.innerHTML = '<span class="tag warn">読み込み中…</span>';
+
+  // 既存動画の URL を破棄
+  if (state.videoObjectUrl) {
+    URL.revokeObjectURL(state.videoObjectUrl);
+    state.videoObjectUrl = null;
+  }
+  if (state.video?.el) {
+    state.video.el.pause();
+    state.video.el.removeAttribute("src");
+    state.video.el.load();
+  }
+
+  const url = URL.createObjectURL(file);
+  state.videoObjectUrl = url;
+  let v;
+  try {
+    v = await loadVideoMetadata(url);
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    state.videoObjectUrl = null;
+    els.vidStatus.innerHTML = '<span class="tag fail">読み込み失敗</span>';
+    showError("動画の読み込みに失敗しました。形式を確認してください。");
+    return;
+  }
+  v.muted = true; // 初期はミュート (録画開始時にミュート解除)
+  v.playsInline = true;
+  v.preload = "auto";
+  v.currentTime = 0;
+
+  // サムネを取得 (シーク後の seeked イベントで描画)
+  await new Promise(resolve => {
+    const onSeeked = () => { v.removeEventListener("seeked", onSeeked); resolve(); };
+    v.addEventListener("seeked", onSeeked);
+    try { v.currentTime = Math.min(0.1, (v.duration || 1) / 2); }
+    catch { resolve(); }
+  });
+
+  thumbCanvas.width = 108; thumbCanvas.height = 108;
+  const tCtx = thumbCanvas.getContext("2d");
+  const scale = Math.max(108 / v.videoWidth, 108 / v.videoHeight);
+  const tw = v.videoWidth * scale, th = v.videoHeight * scale;
+  try { tCtx.drawImage(v, (108 - tw) / 2, (108 - th) / 2, tw, th); }
+  catch { /* ignore */ }
+  els.vidThumb.innerHTML = "";
+  const thumbImg = new Image();
+  thumbImg.src = thumbCanvas.toDataURL();
+  els.vidThumb.appendChild(thumbImg);
+  els.vidDrop.classList.add("loaded");
+  v.currentTime = 0;
+
+  state.video = {
+    el: v, url,
+    w: v.videoWidth, h: v.videoHeight,
+    duration: v.duration || 0
+  };
+  state.videoFile = file;
+
+  els.vidStatus.innerHTML = `<span class="tag ok">${v.videoWidth}×${v.videoHeight} / ${(v.duration||0).toFixed(1)}s</span>`;
+  log(`動画読み込み完了 (${v.videoWidth}×${v.videoHeight}, ${(v.duration||0).toFixed(2)}秒)`, "success");
+  updateButtons();
+}
+
+// === ファイル入力ハンドラ ============================================
+els.srcInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  if (!state.faceLandmarker) return;
+  try { await loadSourceImage(file); }
+  catch (err) {
+    console.error(err);
+    log("画像処理エラー: " + (err.message || err), "error");
+    showError("画像処理中にエラー: " + (err.message || err));
+  }
+});
+els.vidInput.addEventListener("change", async (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  try { await loadVideo(file); }
+  catch (err) {
+    console.error(err);
+    log("動画処理エラー: " + (err.message || err), "error");
+    showError("動画処理中にエラー: " + (err.message || err));
+  }
+});
+
+// === スライダ表示 ====================================================
+els.strengthSlider.addEventListener("input", () => els.strengthValue.textContent = parseFloat(els.strengthSlider.value).toFixed(2));
+els.scaleSlider.addEventListener("input", () => els.scaleValue.textContent = parseFloat(els.scaleSlider.value).toFixed(2));
+els.featherSlider.addEventListener("input", () => els.featherValue.textContent = `${els.featherSlider.value} px`);
+els.occlusionSlider.addEventListener("input", () => els.occlusionValue.textContent = parseFloat(els.occlusionSlider.value).toFixed(2));
+
+// === 数学ユーティリティ ==============================================
+// 3点 (src) を 3点 (tgt) にマッピングするアフィン変換 [a,b,c,d,e,f]
+// ctx.setTransform(a,b,c,d,e,f) に渡せる形式
+function computeAffine(s0, s1, s2, t0, t1, t2) {
+  const x0 = s0[0], y0 = s0[1];
+  const x1 = s1[0], y1 = s1[1];
+  const x2 = s2[0], y2 = s2[1];
+  const denom = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0);
+  if (Math.abs(denom) < 1e-8) return null;
+  const inv = 1 / denom;
+  const u0 = t0[0], v0 = t0[1];
+  const u1 = t1[0], v1 = t1[1];
+  const u2 = t2[0], v2 = t2[1];
+  const a = ((u1 - u0) * (y2 - y0) - (u2 - u0) * (y1 - y0)) * inv;
+  const c = ((u2 - u0) * (x1 - x0) - (u1 - u0) * (x2 - x0)) * inv;
+  const e = u0 - a * x0 - c * y0;
+  const b = ((v1 - v0) * (y2 - y0) - (v2 - v0) * (y1 - y0)) * inv;
+  const d = ((v2 - v0) * (x1 - x0) - (v1 - v0) * (x2 - x0)) * inv;
+  const f = v0 - b * x0 - d * y0;
+  return { a, b, c, d, e, f };
+}
+
+// 三角形を重心から外側に expand ピクセル拡大 (隣接三角形の継ぎ目を消すため)
+function expandTriangle(t0, t1, t2, expand) {
+  const cx = (t0[0] + t1[0] + t2[0]) / 3;
+  const cy = (t0[1] + t1[1] + t2[1]) / 3;
+  function ext(p) {
+    const dx = p[0] - cx, dy = p[1] - cy;
+    const len = Math.hypot(dx, dy);
+    if (len < 1e-4) return [p[0], p[1]];
+    return [p[0] + dx / len * expand, p[1] + dy / len * expand];
+  }
+  return [ext(t0), ext(t1), ext(t2)];
+}
+
+// 顔のスケール調整 (中心からスケール倍)
+function scaleLandmarksAroundCenter(lm, scale) {
+  // 顔中央 = 頬の中点付近 (鼻先 4)
+  const cx = lm[4][0], cy = lm[4][1];
+  const out = new Array(lm.length);
+  for (let i = 0; i < lm.length; i++) {
+    out[i] = [
+      cx + (lm[i][0] - cx) * scale,
+      cy + (lm[i][1] - cy) * scale
+    ];
+  }
+  return out;
+}
+
+// EMA でランドマークを平滑化
+function smoothLandmarks(prev, curr, alpha) {
+  if (!prev || prev.length !== curr.length) {
+    return curr.map(p => [p[0], p[1]]);
+  }
+  const out = new Array(curr.length);
+  for (let i = 0; i < curr.length; i++) {
+    out[i] = [
+      prev[i][0] * (1 - alpha) + curr[i][0] * alpha,
+      prev[i][1] * (1 - alpha) + curr[i][1] * alpha
+    ];
+  }
+  return out;
+}
+
+// EMA で色統計を平滑化
+function smoothStats(prev, curr, alpha) {
+  if (!prev) return { ...curr };
+  return {
+    meanR: prev.meanR * (1 - alpha) + curr.meanR * alpha,
+    meanG: prev.meanG * (1 - alpha) + curr.meanG * alpha,
+    meanB: prev.meanB * (1 - alpha) + curr.meanB * alpha,
+    stdR:  prev.stdR  * (1 - alpha) + curr.stdR  * alpha,
+    stdG:  prev.stdG  * (1 - alpha) + curr.stdG  * alpha,
+    stdB:  prev.stdB  * (1 - alpha) + curr.stdB  * alpha
+  };
+}
+
+// === 色統計 (肌領域のみ) ============================================
+// refStats を渡すと、ピクセル毎に refStats からの距離をチェックして外れ値を除外する
+// (泡/ビールが顔にかかっている時、それらが統計を汚染するのを防ぐ)
+function computeSkinStats(imageData, lm, width, height, refStats = null) {
+  const data = imageData.data;
+  let sumR = 0, sumG = 0, sumB = 0;
+  let sumR2 = 0, sumG2 = 0, sumB2 = 0;
+  let count = 0;
+  const sample = 2; // 各ランドマーク周辺 (2*sample+1)^2 = 25 px
+
+  // 参照統計の準備 (距離フィルタ用)
+  const useRef = !!refStats;
+  const refMR = refStats?.meanR ?? 0;
+  const refMG = refStats?.meanG ?? 0;
+  const refMB = refStats?.meanB ?? 0;
+  const refSR = Math.max(refStats?.stdR ?? 1, 10);
+  const refSG = Math.max(refStats?.stdG ?? 1, 10);
+  const refSB = Math.max(refStats?.stdB ?? 1, 10);
+  const distThreshSq = 3.0 * 3.0; // 3σ 超えは除外 (= 泡やビールっぽい色を弾く)
+
+  for (const idx of SKIN_LANDMARKS) {
+    if (!lm[idx]) continue;
+    const cx = Math.round(lm[idx][0]);
+    const cy = Math.round(lm[idx][1]);
+    for (let dy = -sample; dy <= sample; dy++) {
+      for (let dx = -sample; dx <= sample; dx++) {
+        const x = cx + dx, y = cy + dy;
+        if (x < 0 || x >= width || y < 0 || y >= height) continue;
+        const o = (y * width + x) * 4;
+        const r = data[o], g = data[o+1], b = data[o+2];
+        // 極端な飽和ピクセルを除外
+        const mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+        if (mx > 248 || mn < 8) continue;
+        // 参照統計から外れるピクセルを除外
+        if (useRef) {
+          const dr = (r - refMR) / refSR;
+          const dg = (g - refMG) / refSG;
+          const db = (b - refMB) / refSB;
+          if (dr*dr + dg*dg + db*db > distThreshSq) continue;
+        }
+        sumR += r; sumG += g; sumB += b;
+        sumR2 += r*r; sumG2 += g*g; sumB2 += b*b;
+        count++;
+      }
+    }
+  }
+  if (count < 20) return null;
+  const meanR = sumR / count, meanG = sumG / count, meanB = sumB / count;
+  const stdR = Math.sqrt(Math.max(1, sumR2/count - meanR*meanR));
+  const stdG = Math.sqrt(Math.max(1, sumG2/count - meanG*meanG));
+  const stdB = Math.sqrt(Math.max(1, sumB2/count - meanB*meanB));
+  return { meanR, meanG, meanB, stdR, stdG, stdB, count };
+}
+
+// === 色補正 (ソースをターゲットの統計に合わせる) =====================
+function applyColorCorrection(srcImageData, srcStats, tgtStats) {
+  const data = srcImageData.data;
+  const len = data.length;
+  // チャンネル毎にスケールとオフセット (極端な値は抑制)
+  const sR = clamp(tgtStats.stdR / Math.max(srcStats.stdR, 6), 0.55, 1.6);
+  const sG = clamp(tgtStats.stdG / Math.max(srcStats.stdG, 6), 0.55, 1.6);
+  const sB = clamp(tgtStats.stdB / Math.max(srcStats.stdB, 6), 0.55, 1.6);
+  const mR = srcStats.meanR, mG = srcStats.meanG, mB = srcStats.meanB;
+  const tR = tgtStats.meanR, tG = tgtStats.meanG, tB = tgtStats.meanB;
+
+  for (let i = 0; i < len; i += 4) {
+    if (data[i + 3] === 0) continue;
+    let r = (data[i]     - mR) * sR + tR;
+    let g = (data[i + 1] - mG) * sG + tG;
+    let b = (data[i + 2] - mB) * sB + tB;
+    // ソフトクランプ: 0–255 を超える分を圧縮 (白飛び/黒つぶれを防ぐ)
+    r = softClamp(r); g = softClamp(g); b = softClamp(b);
+    data[i]     = r;
+    data[i + 1] = g;
+    data[i + 2] = b;
+  }
+}
+// 0–255 を超える成分を緩やかに減衰させてクリップを防ぐ
+function softClamp(v) {
+  if (v < 0) return 0;
+  if (v > 255) return 255;
+  // 端部 (240〜255 と 0〜15) をやや穏やかに
+  if (v > 240) return 240 + (v - 240) * 0.5;
+  if (v < 15)  return 15  - (15 - v) * 0.5;
+  return v;
+}
+
+// === 三角形ワープでソース顔をターゲットへ描画 =========================
+function renderWarpedFace(srcCanvas, srcLm, tgtLm, triangles, dstCtx, dstW, dstH) {
+  dstCtx.clearRect(0, 0, dstW, dstH);
+  dstCtx.imageSmoothingEnabled = true;
+  dstCtx.imageSmoothingQuality = "high";
+  const EXPAND = 0.6; // 継ぎ目消し
+  for (let i = 0; i < triangles.length; i += 3) {
+    const ia = triangles[i], ib = triangles[i+1], ic = triangles[i+2];
+    const s0 = srcLm[ia], s1 = srcLm[ib], s2 = srcLm[ic];
+    const t0 = tgtLm[ia], t1 = tgtLm[ib], t2 = tgtLm[ic];
+    if (!s0 || !t0) continue;
+    const [te0, te1, te2] = expandTriangle(t0, t1, t2, EXPAND);
+    const m = computeAffine(s0, s1, s2, te0, te1, te2);
+    if (!m) continue;
+    dstCtx.save();
+    dstCtx.beginPath();
+    dstCtx.moveTo(te0[0], te0[1]);
+    dstCtx.lineTo(te1[0], te1[1]);
+    dstCtx.lineTo(te2[0], te2[1]);
+    dstCtx.closePath();
+    dstCtx.clip();
+    dstCtx.setTransform(m.a, m.b, m.c, m.d, m.e, m.f);
+    dstCtx.drawImage(srcCanvas, 0, 0);
+    dstCtx.setTransform(1, 0, 0, 1, 0, 0);
+    dstCtx.restore();
+  }
+}
+
+// === マスク構築: 髪を除外し、内側楕円 + フェザリング =================
+function buildFaceMask(ctx, lm, w, h, ovalShrink, featherPx) {
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
+
+  // 顔中央 (鼻先)
+  const cx = lm[4][0], cy = lm[4][1];
+
+  // 眉ラインの最上 Y
+  let browTopY = Infinity;
+  for (const i of EYEBROW_TOPS) if (lm[i] && lm[i][1] < browTopY) browTopY = lm[i][1];
+  // 顎下端 (152)
+  const chinY = lm[CHIN_IDX][1];
+  // 額側のクランプ Y: 眉より少し上 (顔高さの 18%)
+  const faceHeight = Math.max(40, chinY - browTopY);
+  const upperLimitY = browTopY - faceHeight * 0.20;
+
+  // 内側ポリゴン構築
+  const poly = [];
+  for (let i = 0; i < FACE_OVAL.length; i++) {
+    const idx = FACE_OVAL[i];
+    const p = lm[idx];
+    let x = cx + (p[0] - cx) * ovalShrink;
+    let y = cy + (p[1] - cy) * ovalShrink;
+    if (FOREHEAD_OVAL_IDX_SET.has(i) && y < upperLimitY) y = upperLimitY;
+    poly.push([x, y]);
+  }
+
+  // フェザリング (ガウシアンブラー)
+  if (featherPx > 0) ctx.filter = `blur(${featherPx}px)`;
+  ctx.fillStyle = "#ffffff";
+  ctx.beginPath();
+  ctx.moveTo(poly[0][0], poly[0][1]);
+  for (let i = 1; i < poly.length; i++) ctx.lineTo(poly[i][0], poly[i][1]);
+  ctx.closePath();
+  ctx.fill();
+  ctx.filter = "none";
+  ctx.restore();
+}
+
+// === 目/口部分の弱体化マスク: 動画の表情を薄く戻すために使用 ==========
+function buildFeatureRevealMask(ctx, lm, w, h) {
+  ctx.save();
+  ctx.clearRect(0, 0, w, h);
+  ctx.filter = `blur(6px)`;
+  ctx.fillStyle = "#ffffff";
+
+  function fillRegion(indices, padFactor) {
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const i of indices) {
+      const p = lm[i];
+      if (!p) continue;
+      if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+      if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+    }
+    if (!isFinite(minX)) return;
+    const ecx = (minX + maxX) / 2, ecy = (minY + maxY) / 2;
+    const rx = (maxX - minX) / 2 * padFactor;
+    const ry = (maxY - minY) / 2 * padFactor;
+    ctx.beginPath();
+    ctx.ellipse(ecx, ecy, rx, ry, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  fillRegion(EYE_LEFT, 1.20);
+  fillRegion(EYE_RIGHT, 1.20);
+  fillRegion(MOUTH_OUTER, 1.15);
+
+  ctx.filter = "none";
+  ctx.restore();
+}
+
+// === 肌確率マスク [v2] ===============================================
+// 動画フレーム内で各ピクセルが「肌色っぽいか」を判定し、
+// 肌でない場所 (泡/ビール/手/前髪が顔に落ちた等) で合成を弱める。
+// これにより、顔にビールがかかっても貼った顔が突き抜けて見えない。
+function buildSkinProbabilityMask(videoImgData, lm, w, h, stats, sensitivity) {
+  const data = videoImgData.data;
+  const out = skinProbCtx.createImageData(w, h);
+  const outData = out.data;
+
+  // 顔オーバルのバウンディングボックスのみを処理 (性能)
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (const idx of FACE_OVAL) {
+    const p = lm[idx]; if (!p) continue;
+    if (p[0] < minX) minX = p[0]; if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1]; if (p[1] > maxY) maxY = p[1];
+  }
+  if (!isFinite(minX)) {
+    skinProbCtx.putImageData(out, 0, 0);
+    return;
+  }
+  const pad = Math.max(20, (maxX - minX) * 0.22);
+  const x0 = Math.max(0, Math.floor(minX - pad));
+  const y0 = Math.max(0, Math.floor(minY - pad));
+  const x1 = Math.min(w, Math.ceil(maxX + pad));
+  const y1 = Math.min(h, Math.ceil(maxY + pad));
+
+  const mR = stats.meanR, mG = stats.meanG, mB = stats.meanB;
+  const sR = Math.max(stats.stdR, 12);
+  const sG = Math.max(stats.stdG, 12);
+  const sB = Math.max(stats.stdB, 12);
+
+  // sensitivity: 0 (除去無し=全部肌扱い) / 0.85 (デフォルト) / 1.5 (厳しめ)
+  // softMin: ここまで近ければ完全に肌 (α=255)
+  // softMax: これより遠ければ完全に非肌 (α=0)
+  // sensitivity が大きいほど softMin/Max が小さい = 厳しい
+  const softMin = 1.0 / Math.max(sensitivity, 0.05);
+  const softMax = 2.8 / Math.max(sensitivity, 0.05);
+  const range = softMax - softMin;
+
+  // sensitivity = 0 の場合は全部肌扱い (マスク無効化)
+  const disable = sensitivity <= 0.01;
+
+  for (let y = y0; y < y1; y++) {
+    const rowOff = y * w;
+    for (let x = x0; x < x1; x++) {
+      const o = (rowOff + x) * 4;
+      let alpha;
+      if (disable) {
+        alpha = 255;
+      } else {
+        const r = data[o], g = data[o+1], b = data[o+2];
+        const dr = (r - mR) / sR;
+        const dg = (g - mG) / sG;
+        const db = (b - mB) / sB;
+        const dist = Math.sqrt(dr*dr + dg*dg + db*db);
+        if (dist <= softMin) alpha = 255;
+        else if (dist >= softMax) alpha = 0;
+        else alpha = (1 - (dist - softMin) / range) * 255;
+      }
+      outData[o] = 255; outData[o+1] = 255; outData[o+2] = 255;
+      outData[o+3] = alpha;
+    }
+  }
+  skinProbCtx.putImageData(out, 0, 0);
+}
+
+// === メイン: 1 フレームの処理 ========================================
+const featureMaskCanvas = document.createElement("canvas");
+const featureMaskCtx = featureMaskCanvas.getContext("2d");
+const tmpFrameCanvas = document.createElement("canvas");
+const tmpFrameCtx = tmpFrameCanvas.getContext("2d");
+
+function processFrame(detectionMs) {
+  const video = state.video.el;
+  const w = state.outputW, h = state.outputH;
+  const src = state.source;
+
+  // 1) 動画フレームを videoFrameCanvas (出力解像度) へ描画
+  videoFrameCtx.drawImage(video, 0, 0, w, h);
+
+  // 2) 検出 (間隔設定によりスキップ)
+  const detectInterval = parseInt(els.intervalSelect.value, 10);
+  const nowMs = performance.now();
+  let lmResult = null;
+  if (detectInterval === 0 || (nowMs - state.lastDetectTimeMs) >= detectInterval) {
+    try {
+      lmResult = state.faceLandmarker.detectForVideo(videoFrameCanvas, detectionMs);
+      state.lastDetectTimeMs = nowMs;
+    } catch (e) {
+      // ランタイムエラーは frame をスキップ
+    }
+  }
+
+  let pxLm = null;
+  if (lmResult && lmResult.faceLandmarks && lmResult.faceLandmarks.length > 0) {
+    const norm = lmResult.faceLandmarks[0];
+    pxLm = new Array(NUM_FACE_LANDMARKS);
+    for (let i = 0; i < NUM_FACE_LANDMARKS; i++) {
+      pxLm[i] = [norm[i].x * w, norm[i].y * h];
+    }
+  }
+
+  // 検出された場合: 平滑化更新
+  if (pxLm) {
+    // ジャンプ検出: 鼻先位置が前回から大幅にずれていれば平滑化リセット
+    if (state.smoothedLm) {
+      const prevNose = state.smoothedLm[4];
+      const dx = pxLm[4][0] - prevNose[0];
+      const dy = pxLm[4][1] - prevNose[1];
+      const jump = Math.hypot(dx, dy);
+      if (jump > Math.max(w, h) * 0.10) {
+        state.smoothedLm = null; // リセット
+      }
+    }
+    state.smoothedLm = smoothLandmarks(state.smoothedLm, pxLm, 0.55);
+  }
+
+  // 顔が見つからない場合は動画フレームをそのまま表示
+  if (!state.smoothedLm) {
+    outputCtx.drawImage(videoFrameCanvas, 0, 0);
+    return;
+  }
+
+  // 3) ターゲット側の顔スケール調整
+  const faceScale = parseFloat(els.scaleSlider.value);
+  const tgtLm = faceScale === 1.0 ? state.smoothedLm : scaleLandmarksAroundCenter(state.smoothedLm, faceScale);
+
+  // 4) ターゲット側の肌色統計を計算 (v2: 前フレームの統計を参照に外れ値を除外)
+  //    初回フレームは前統計が無いのでフィルタ無効 → ソースと肌色が大きく違うケースに対応
+  const frameImg = videoFrameCtx.getImageData(0, 0, w, h);
+  const tgtStatsRaw = computeSkinStats(frameImg, state.smoothedLm, w, h, state.smoothedStats);
+
+  if (tgtStatsRaw) {
+    state.smoothedStats = smoothStats(state.smoothedStats, tgtStatsRaw, 0.35);
+  } else if (!state.smoothedStats) {
+    // 初回かつ肌が全く取れない場合はソースの統計を初期値として使う
+    state.smoothedStats = { ...state.source.stats };
+  }
+  const tgtStats = state.smoothedStats;
+
+  // 5) ソース画像に色補正を適用 (一定間隔で更新。再計算はソース解像度全体に対して走る)
+  if (tgtStats && (nowMs - state.lastCorrectedSrcUpdateMs) > 100) {
+    correctedSrcCtx.drawImage(src.canvas, 0, 0);
+    const corrData = correctedSrcCtx.getImageData(0, 0, src.w, src.h);
+    applyColorCorrection(corrData, src.stats, tgtStats);
+    correctedSrcCtx.putImageData(corrData, 0, 0);
+    state.lastCorrectedSrcUpdateMs = nowMs;
+  }
+
+  // 6) 三角形ワープでソース顔をターゲットの位置へ描画
+  renderWarpedFace(correctedSrcCanvas, src.landmarks, tgtLm, src.triangles, faceWarpCtx, w, h);
+
+  // 7) 顔オーバルマスク (内側楕円 + フェザリング + 髪除外)
+  const featherPx = parseInt(els.featherSlider.value, 10);
+  buildFaceMask(maskCtx, tgtLm, w, h, 0.93, featherPx);
+
+  // 7.5) [v2] 肌確率マスク: 動画側の各ピクセルが肌色か判定
+  //      泡 / ビール / 手 / 落ちてきた前髪 等を自動除外する
+  const occlusionSens = parseFloat(els.occlusionSlider.value);
+  buildSkinProbabilityMask(frameImg, tgtLm, w, h, tgtStats, occlusionSens);
+
+  // 7.6) [v2] マスク結合: 顔オーバル × 肌確率
+  //      combinedMaskCanvas に顔マスクを描き、destination-in で肌確率マスクを掛け合わせる
+  combinedMaskCtx.clearRect(0, 0, w, h);
+  combinedMaskCtx.drawImage(maskCanvas, 0, 0);
+  combinedMaskCtx.globalCompositeOperation = "destination-in";
+  // 肌確率マスクは粒状なので軽くぼかして滑らかに
+  combinedMaskCtx.filter = "blur(2.5px)";
+  combinedMaskCtx.drawImage(skinProbCanvas, 0, 0);
+  combinedMaskCtx.filter = "none";
+  combinedMaskCtx.globalCompositeOperation = "source-over";
+
+  // 8) ワープした顔に結合マスクを適用 (= 顔の中で「肌が見える領域」のみが残る)
+  faceWarpCtx.globalCompositeOperation = "destination-in";
+  faceWarpCtx.drawImage(combinedMaskCanvas, 0, 0);
+  faceWarpCtx.globalCompositeOperation = "source-over";
+
+  // 9) 出力キャンバスへ合成
+  outputCtx.drawImage(videoFrameCanvas, 0, 0);
+  const strength = parseFloat(els.strengthSlider.value);
+  outputCtx.globalAlpha = strength;
+  outputCtx.drawImage(faceWarpCanvas, 0, 0);
+  outputCtx.globalAlpha = 1.0;
+
+  // 10) 目・口の動きを薄く戻す (動画側のディテール 25%)
+  buildFeatureRevealMask(featureMaskCtx, state.smoothedLm, w, h);
+  tmpFrameCtx.clearRect(0, 0, w, h);
+  tmpFrameCtx.drawImage(videoFrameCanvas, 0, 0);
+  tmpFrameCtx.globalCompositeOperation = "destination-in";
+  tmpFrameCtx.drawImage(featureMaskCanvas, 0, 0);
+  tmpFrameCtx.globalCompositeOperation = "source-over";
+  outputCtx.globalAlpha = 0.28;
+  outputCtx.drawImage(tmpFrameCanvas, 0, 0);
+  outputCtx.globalAlpha = 1.0;
+}
+
+// === 出力解像度の決定 ================================================
+function decideOutputSize(video) {
+  const sel = els.resolutionSelect.value;
+  const ar = video.videoWidth / video.videoHeight;
+  let w, h;
+  if (sel === "orig") {
+    w = video.videoWidth; h = video.videoHeight;
+  } else {
+    w = parseInt(sel, 10);
+    h = Math.round(w / ar);
+  }
+  // エンコーダ互換のため偶数化
+  w = w & ~1; h = h & ~1;
+  return [Math.max(2, w), Math.max(2, h)];
+}
+
+// === Recorder ========================================================
+function pickMimeType() {
+  const candidates = [
+    "video/mp4;codecs=avc1.42E01E",
+    "video/mp4;codecs=avc1",
+    "video/mp4",
+    "video/webm;codecs=vp9",
+    "video/webm;codecs=vp8",
+    "video/webm"
+  ];
+  for (const c of candidates) {
+    try { if (MediaRecorder.isTypeSupported(c)) return c; } catch {}
+  }
+  return "";
+}
+
+function setupRecorder(canvas, fps) {
+  const stream = canvas.captureStream(fps);
+
+  // 動画の音声を可能なら付与
+  try {
+    if (typeof state.video.el.captureStream === "function" || typeof state.video.el.mozCaptureStream === "function") {
+      const fn = state.video.el.captureStream || state.video.el.mozCaptureStream;
+      const vStream = fn.call(state.video.el);
+      for (const track of vStream.getAudioTracks()) {
+        stream.addTrack(track);
+      }
+    }
+  } catch (e) {
+    log("音声の取り込みに失敗 (映像のみ録画)", "warn");
+  }
+
+  const mime = pickMimeType();
+  if (!mime) throw new Error("対応する MediaRecorder 形式が見つかりません");
+
+  const recorder = new MediaRecorder(stream, {
+    mimeType: mime,
+    videoBitsPerSecond: 4_500_000,
+    audioBitsPerSecond: 128_000
+  });
+
+  state.recordedChunks = [];
+  state.recordedMime = mime;
+  recorder.ondataavailable = (e) => {
+    if (e.data && e.data.size > 0) state.recordedChunks.push(e.data);
+  };
+  recorder.onstop = () => {
+    try {
+      state.recordedBlob = new Blob(state.recordedChunks, { type: mime });
+      els.saveBtn.disabled = false;
+      const sizeMB = (state.recordedBlob.size / 1024 / 1024).toFixed(2);
+      log(`録画完了 (${sizeMB} MB / ${mime})`, "success");
+    } catch (e) {
+      log("録画 Blob 生成エラー: " + (e.message || e), "error");
+    }
+  };
+  return recorder;
+}
+
+// === メインループ (rVFC / rAF) ======================================
+// detectForVideo は単調増加するタイムスタンプを要求する。
+// 「実行」を複数回行ったり動画がシークしても壊れないように、
+// performance.now() ベースで必ず +0.001 ずつ進む TS を生成する。
+function nextTs() {
+  let t = performance.now();
+  if (t <= state.lastTs) t = state.lastTs + 0.001;
+  state.lastTs = t;
+  return t;
+}
+
+function loopWithRVFC(video) {
+  function step(now, metadata) {
+    if (state.stopRequested) return;
+    try { processFrame(nextTs()); }
+    catch (e) {
+      console.error(e);
+      log("処理エラー: " + (e.message || e), "error");
+    }
+    updateProgress();
+    state.rvfcHandle = video.requestVideoFrameCallback(step);
+  }
+  state.rvfcHandle = video.requestVideoFrameCallback(step);
+}
+
+function loopWithRAF(video) {
+  function step() {
+    if (state.stopRequested) return;
+    if (video.currentTime !== state.lastFrameVideoTime) {
+      state.lastFrameVideoTime = video.currentTime;
+      try { processFrame(nextTs()); }
+      catch (e) {
+        console.error(e);
+        log("処理エラー: " + (e.message || e), "error");
+      }
+      updateProgress();
+    }
+    state.rafHandle = requestAnimationFrame(step);
+  }
+  state.rafHandle = requestAnimationFrame(step);
+}
+
+function updateProgress() {
+  const v = state.video.el;
+  const dur = state.video.duration || v.duration || 0;
+  const cur = v.currentTime || 0;
+  const pct = dur > 0 ? clamp(cur / dur, 0, 1) : 0;
+  els.progressFill.style.width = (pct * 100).toFixed(1) + "%";
+  els.progressTime.textContent = `${cur.toFixed(2)} / ${dur.toFixed(2)} s`;
+}
+
+// === 開始 / 停止 / 保存 =============================================
+async function startProcessing() {
+  if (!state.source || !state.video || state.processing) return;
+
+  // 解像度を決定
+  const [w, h] = decideOutputSize(state.video.el);
+  state.outputW = w; state.outputH = h;
+  // 全キャンバスのサイズをここで確定 (これ以降は変更しない: captureStream を壊さない)
+  outputCanvas.width = w; outputCanvas.height = h;
+  videoFrameCanvas.width = w; videoFrameCanvas.height = h;
+  faceWarpCanvas.width = w; faceWarpCanvas.height = h;
+  maskCanvas.width = w; maskCanvas.height = h;
+  skinProbCanvas.width = w; skinProbCanvas.height = h;
+  combinedMaskCanvas.width = w; combinedMaskCanvas.height = h;
+  featureMaskCanvas.width = w; featureMaskCanvas.height = h;
+  tmpFrameCanvas.width = w; tmpFrameCanvas.height = h;
+  // 出力キャンバスを動画フレームでプリフィル (空白フレームを録画しないため)
+  videoFrameCtx.drawImage(state.video.el, 0, 0, w, h);
+  outputCtx.drawImage(videoFrameCanvas, 0, 0);
+  els.canvasEmpty.classList.add("hidden");
+
+  // 動画モードへ
+  try { await ensureMode("VIDEO"); }
+  catch (e) {
+    showError("動画モードへの切替に失敗しました: " + (e.message || e));
+    return;
+  }
+
+  // 平滑化リセット
+  state.smoothedLm = null;
+  state.smoothedStats = null;
+  state.lastDetectTimeMs = -Infinity;
+  state.lastCorrectedSrcUpdateMs = -Infinity;
+  state.lastFrameVideoTime = -1;
+  state.recordedBlob = null;
+  state.recordedChunks = [];
+  els.saveBtn.disabled = true;
+
+  // Recorder セットアップ
+  let recorder;
+  try {
+    recorder = setupRecorder(outputCanvas, 30);
+  } catch (e) {
+    showError("録画の初期化に失敗しました: " + (e.message || e));
+    return;
+  }
+  state.recorder = recorder;
+
+  state.processing = true;
+  state.stopRequested = false;
+  setStatus("processing", "処理中…");
+  els.progressLabel.textContent = "処理中…";
+  log(`処理開始 (${w}×${h})`, "info");
+  updateButtons();
+
+  const video = state.video.el;
+  video.currentTime = 0;
+  video.muted = false; // 音声記録のためミュート解除 (再生は audio output しないように attach しない)
+
+  // 動画が再生開始したらレコード開始
+  const onPlaying = () => {
+    if (recorder.state === "inactive") {
+      try { recorder.start(1000); }
+      catch (e) { log("録画開始エラー: " + (e.message || e), "error"); }
+    }
+    video.removeEventListener("playing", onPlaying);
+  };
+  video.addEventListener("playing", onPlaying);
+
+  // 動画終了時に自動停止
+  const onEnded = () => {
+    video.removeEventListener("ended", onEnded);
+    stopProcessing(false);
+  };
+  video.addEventListener("ended", onEnded);
+
+  // 再生開始
+  try {
+    await video.play();
+  } catch (e) {
+    log("動画再生エラー: " + (e.message || e), "error");
+    showError("動画の再生に失敗しました: " + (e.message || e));
+    state.processing = false;
+    setStatus("ready", "準備完了");
+    updateButtons();
+    return;
+  }
+
+  // ループ
+  if (typeof video.requestVideoFrameCallback === "function") {
+    log("requestVideoFrameCallback を使用", "info");
+    loopWithRVFC(video);
+  } else {
+    log("requestAnimationFrame でフォールバック", "info");
+    loopWithRAF(video);
+  }
+}
+
+function stopProcessing(userTriggered = true) {
+  if (!state.processing) return;
+  state.stopRequested = true;
+  state.processing = false;
+
+  const v = state.video?.el;
+  if (v) {
+    try { v.pause(); } catch {}
+  }
+  if (state.rvfcHandle && v && typeof v.cancelVideoFrameCallback === "function") {
+    try { v.cancelVideoFrameCallback(state.rvfcHandle); } catch {}
+    state.rvfcHandle = null;
+  }
+  if (state.rafHandle) {
+    cancelAnimationFrame(state.rafHandle);
+    state.rafHandle = null;
+  }
+
+  if (state.recorder && state.recorder.state !== "inactive") {
+    try { state.recorder.stop(); } catch (e) {
+      log("録画停止エラー: " + (e.message || e), "warn");
+    }
+  }
+
+  setStatus("ready", "準備完了");
+  els.progressLabel.textContent = userTriggered ? "停止しました" : "完了";
+  log(userTriggered ? "ユーザー操作で停止しました" : "処理が完了しました", userTriggered ? "warn" : "success");
+  updateButtons();
+}
+
+function saveOutput() {
+  if (!state.recordedBlob) {
+    showError("保存できる動画がまだありません。先に「実行」してください。");
+    return;
+  }
+  const ext = (state.recordedMime || "").startsWith("video/mp4") ? "mp4" : "webm";
+  const url = URL.createObjectURL(state.recordedBlob);
+  const a = document.createElement("a");
+  const ts = new Date().toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  a.href = url;
+  a.download = `face_swap_${ts}.${ext}`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  log(`保存しました: face_swap_${ts}.${ext}`, "success");
+}
+
+els.startBtn.addEventListener("click", () => {
+  startProcessing().catch(e => {
+    console.error(e);
+    log("開始エラー: " + (e.message || e), "error");
+    showError("開始時にエラーが発生しました: " + (e.message || e));
+    state.processing = false;
+    setStatus("ready", "準備完了");
+    updateButtons();
+  });
+});
+els.stopBtn.addEventListener("click", () => stopProcessing(true));
+els.saveBtn.addEventListener("click", saveOutput);
+
+// === Page Unload 時のクリーンアップ =================================
+window.addEventListener("beforeunload", () => {
+  if (state.videoObjectUrl) {
+    try { URL.revokeObjectURL(state.videoObjectUrl); } catch {}
+  }
+});
+
+// === 起動 ===========================================================
+init();
+</script>
+</body>
+</html>
